@@ -13,6 +13,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -59,6 +60,16 @@ public class SecurityAdapter extends WebSecurityConfigurerAdapter {
     }
 
     @Override
+    public void configure(WebSecurity web) throws Exception {
+        //allow Swagger URL to be accessed without authentication
+        web.ignoring().antMatchers("/v2/api-docs",//swagger api json
+                "/swagger-resources/**",
+                "/webjars/**",
+                "/configuration/**",
+                "/swagger-ui.html");
+    }
+
+    @Override
     protected void configure(HttpSecurity http) throws Exception {
         // 检索匿名访问接口： PreAuthorize("hasAnyRole('AnonymousAccess')") 和 AnonymousAccess
         Map<RequestMappingInfo, HandlerMethod> handlerMethodMap = applicationContext.getBean(RequestMappingHandlerMapping.class).getHandlerMethods();
@@ -89,11 +100,6 @@ public class SecurityAdapter extends WebSecurityConfigurerAdapter {
                         "/**/*.css",
                         "/**/*.js"
                 ).anonymous()
-                // swagger
-                .antMatchers("/swagger-ui.html").permitAll()
-                .antMatchers("/swagger-resources/**").permitAll()
-                .antMatchers("/webjars/**").permitAll()
-                .antMatchers("/*/api-docs").permitAll()
                 // 登陆
                 .antMatchers("/auth/login").permitAll()
                 // 放行匿名访问URL
