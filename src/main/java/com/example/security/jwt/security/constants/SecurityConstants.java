@@ -44,6 +44,10 @@ public class SecurityConstants {
      * token type
      */
     public static String TOKEN_TYPE = "JWT";
+    /**
+     * 允许登陆失败的次数
+     */
+    public static int ALLOW_LOGIN_FAILED_NUM = 5;
 
     @Value("${spring.security.auth.login.url}")
     public void setAuthLoginUrl(String authLoginUrl) {
@@ -88,5 +92,10 @@ public class SecurityConstants {
     @Value("${spring.security.auth.token.type}")
     public void setTokenType(String tokenType) {
         SecurityConstants.TOKEN_TYPE = tokenType;
+    }
+
+    @Value("${spring.security.login.allow.failed.num}")
+    public void setAllowLoginFailedNum(int allowLoginFailedNum) {
+        ALLOW_LOGIN_FAILED_NUM = allowLoginFailedNum;
     }
 }

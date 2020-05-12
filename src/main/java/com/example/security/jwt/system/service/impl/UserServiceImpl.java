@@ -1,7 +1,6 @@
 package com.example.security.jwt.system.service.impl;
 
 import com.example.security.jwt.security.entity.JwtUser;
-import com.example.security.jwt.security.exception.UserNotActivatedException;
 import com.example.security.jwt.system.entity.User;
 import com.example.security.jwt.system.enums.UserStatusEnum;
 import com.example.security.jwt.system.exception.UserNameAlreadyExistException;
@@ -11,7 +10,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -47,15 +45,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User findUserByUserName(String name) {
-        User user = userRepository.findByUsername(name)
-                .orElseThrow(() -> new UsernameNotFoundException("No user found with username " + name));
-
-        // 判断用户是否激活
-        if (!user.isActivated()) {
-            throw new UserNotActivatedException("账户未激活");
-        }
-
-        return user;
+        return userRepository.findByUsername(name)
+                .orElse(null);
     }
 
     @Override

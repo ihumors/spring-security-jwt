@@ -1,6 +1,7 @@
 package com.example.security.jwt.security.config;
 
 import com.example.security.jwt.security.annotation.AnonymousAccess;
+import com.example.security.jwt.security.constants.SecurityConstants;
 import com.example.security.jwt.security.exception.JWTAccessDeniedHandler;
 import com.example.security.jwt.security.exception.JWTAuthenticationEntryPoint;
 import com.example.security.jwt.security.filter.JWTBasicAuthenticationFilter;
@@ -27,6 +28,7 @@ import javax.annotation.Resource;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
 
 /**
  * @author PD
@@ -61,16 +63,6 @@ public class SecurityAdapter extends WebSecurityConfigurerAdapter {
 
     @Override
     public void configure(WebSecurity web) throws Exception {
-        //allow Swagger URL to be accessed without authentication
-        web.ignoring().antMatchers("/v2/api-docs",//swagger api json
-                "/swagger-resources/**",
-                "/webjars/**",
-                "/configuration/**",
-                "/swagger-ui.html");
-    }
-
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
         // 检索匿名访问接口： PreAuthorize("hasAnyRole('AnonymousAccess')") 和 AnonymousAccess
         Map<RequestMappingInfo, HandlerMethod> handlerMethodMap = applicationContext.getBean(RequestMappingHandlerMapping.class).getHandlerMethods();
         Set<String> anonymousUrls = new HashSet<>();
@@ -86,37 +78,51 @@ public class SecurityAdapter extends WebSecurityConfigurerAdapter {
                 anonymousUrls.addAll(infoEntry.getKey().getPatternsCondition().getPatterns());
             }
         }
+        //allow to be accessed without authentication
+        web.ignoring()
+                .antMatchers("/v2/api-docs",
+                        "/swagger-resources/**",
+                        "/webjars/**",
+                        "/configuration/**",
+                        "/swagger-ui.html",
+                        "/druid/**",
+                        "/*.html",
+                        "/**/*.html",
+                        "/**/*.css",
+                        "/**/*.js",
+                        "/**/*.ico",
+                        "/images/**",
+                        "/img/**",
+                        "/fonts/**",
+                        "/csrf",
+                        "/")
+                // 放行匿名访问URL
+                .antMatchers(anonymousUrls.toArray(new String[0]));
+    }
 
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
         http.cors().and()
                 // 禁用 CSRF
                 .csrf().disable()
                 // 过滤请求
                 .authorizeRequests()
-                // 静态文件
-                .antMatchers(
-                        HttpMethod.GET,
-                        "/*.html",
-                        "/**/*.html",
-                        "/**/*.css",
-                        "/**/*.js"
-                ).anonymous()
+                // 所有请求都需要认证
+                .anyRequest().authenticated()
                 // 登陆
-                .antMatchers("/auth/login").permitAll()
-                // 放行匿名访问URL
-                .antMatchers(anonymousUrls.toArray(new String[0])).permitAll()
+                .antMatchers(SecurityConstants.AUTH_LOGIN_URL).permitAll()
                 // 放行OPTIONS请求
                 .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .antMatchers("/druid/**").permitAll()
-
                 .and()
                 //添加自定义Filter
                 .addFilter(new JWTUsernamePasswordAuthenticationFilter(authenticationManager()))
                 .addFilter(new JWTBasicAuthenticationFilter(authenticationManager()))
                 // 不需要session（不创建会话）
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 // 授权异常处理
-                .exceptionHandling().authenticationEntryPoint(new JWTAuthenticationEntryPoint())
-                .accessDeniedHandler(new JWTAccessDeniedHandler());
+                .and().exceptionHandling().authenticationEntryPoint(new JWTAuthenticationEntryPoint())
+                .accessDeniedHandler(new JWTAccessDeniedHandler())
+        ;
 
         // 防止H2 web 页面的Frame 被拦截
         http.headers().frameOptions().disable();

@@ -1,7 +1,6 @@
 package com.example.security.jwt.security.filter;
 
 import com.example.security.jwt.security.constants.SecurityConstants;
-import com.example.security.jwt.security.exception.JWTAccessDeniedHandler;
 import com.example.security.jwt.security.exception.JWTTokenExpiredException;
 import com.example.security.jwt.security.utils.JwtTokenUtils;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -48,6 +47,9 @@ public class JWTBasicAuthenticationFilter extends BasicAuthenticationFilter {
             chain.doFilter(request, response);
             return;
         }
+
+        // todo 相应的业务逻辑状态判断返回相应的状态码
+
         // 如果请求头中有token，则进行解析，并且设置授权信息
         SecurityContextHolder.getContext().setAuthentication(getAuthentication(authorization));
         super.doFilterInternal(request, response, chain);

@@ -1,6 +1,7 @@
 package com.example.security.jwt.security.entity;
 
 import com.example.security.jwt.system.entity.User;
+import com.example.security.jwt.system.enums.UserStatusEnum;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -11,9 +12,12 @@ import java.util.Collection;
  */
 public class JwtUser implements UserDetails {
 
-    private Integer id;
+    private Integer userId;
     private String username;
     private String password;
+    private boolean activated;
+    private int status;
+
     private Collection<? extends GrantedAuthority> authorities;
 
     public JwtUser() {
@@ -23,9 +27,11 @@ public class JwtUser implements UserDetails {
      * 通过 user 对象创建jwtUser
      */
     public JwtUser(User user) {
-        id = user.getId();
+        userId = user.getId();
         username = user.getUsername();
         password = user.getPassword();
+        activated = user.isActivated();
+        status = user.getStatus().getCode();
         authorities = user.getRoles();
     }
 
@@ -64,12 +70,26 @@ public class JwtUser implements UserDetails {
         return true;
     }
 
+    public Integer getUserId() {
+        return userId;
+    }
+
+    public boolean isActivated() {
+        return activated;
+    }
+
+    public int getStatus() {
+        return status;
+    }
+
     @Override
     public String toString() {
         return "JwtUser{" +
-                "id=" + id +
+                "userId=" + userId +
                 ", username='" + username + '\'' +
                 ", password='" + password + '\'' +
+                ", activated=" + activated +
+                ", status='" + status +
                 ", authorities=" + authorities +
                 '}';
     }
